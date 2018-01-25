@@ -4,6 +4,7 @@ wire add,lw,sw,j,jal,beq,bne,slt,jr,jalr;
 wire myand,myor,myxor,mynor,addiu,andi,ori,xori;
 wire bgez, bgtz, blez, bltz, sub, subu, slti, sltu, sltiu;
 wire lbu,lb,lhu,lh,sb,sh,lui;
+wire sra,srav,srl,srlv,sll,sllv,div,divu,mult,multu,mthi,mtlo,mfhi,mflo;
 wire excp;
 assign add = (op == 6'b000000) && (irfunc == 6'b100000);
 assign lw = (op == 6'b100011) ;

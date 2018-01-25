@@ -471,6 +471,8 @@ module sra(input [31:0]B,input [31:0] A,output [31:0] O);
  assign offset = B[4:0];
  assign O = (A[31] == 0 ? 0 : -1) | (A >> offset);
 endmodule
+
+
 module srl(input [31:0]B,input [31:0] A,output [31:0] O);
  wire[4:0] offset;
  assign offset = B[4:0];
