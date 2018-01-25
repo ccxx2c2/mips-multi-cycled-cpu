@@ -70,6 +70,16 @@ module gr(input[4:0] addr1,input[4:0] addr2, input[4:0] inaddr,input signal,inpu
     assign out = {{16{in[15]}},in};
  endmodule;
  
+ module lSignExtend(in,sgn,out);
+    input [31:0] in;
+    input [3:0] sgn;
+    output [31:0] out;
+    assign out = sgn[0] ? {{16{in[15]}},in[15:0]} : //lh
+                 sgn[1] ? {{16{1'b0}},in[15:0]} : // lhu
+                 sgn[2] ? {{24{in[7]}},in[7:0]} : // lb
+                 sgn[3] ? {{24{1'b0}},in[7:0]} : out; // lbu
+ endmodule;
+ 
  module shift2(in,out);
     input [31:0]in;
     output [31:0]out;
