@@ -28,22 +28,25 @@ module cpu(input reset,[4:0]p);
     wire dmemsignal;
     wire [31:0] mdrin,mdrout;
     wire pcwritecond;
-    wire [31:0]lsgnexin,lsgnexout;
-    wire [3:0] lsgnsgn,ssgn;
+    wire [31:0]lsgnexin,lsgnexout,loin,loout,hiin,hiout,aluq,alur;
+    wire [63:0] alup;
+    wire [3:0] lsgnsgn,ssgn,hictrl,loctrl;// save && load signal
     IMem IMem(imemin,imemout);
     pc pc(pcin,pcsgn,pcinc,reset,pcnext,pcout);
     IR IR(irin,irsgn,irout);
-    CU CU(cuop,cufunc,regimm,p,reset,error,lorD,RegDst,MemtoReg,AluSrcA,AluSrcB,PCSource,PCWrite,ImemWrite,cupcinc,AluOp,regwrite,memWrite,shiftSrc,pccond,mdrinctrl,lsgn,ssgn);
+    CU CU(cuop,cufunc,regimm,p,reset,error,lorD,RegDst,MemtoReg,AluSrcA,AluSrcB,PCSource,PCWrite,ImemWrite,cupcinc,AluOp,regwrite,memWrite,shiftSrc,pccond,mdrinctrl,lsgn,ssgn,hictrl,loctrl);
     gr gr(graddr1,graddr2, grinaddr,grsignal,grdata,gro1,gro2);
     A A(ain,aout);
     A B(bin,bout);
-    alu alu(alua,alub,alufunc,aluo,aluov,aluerr);
+    alu alu(alua,alub,alufunc,aluo,aluov,aluerr,alup,aluq,alur);
     A aluout(aoin,aoout);
     SignExtend SignExtend(sgnexin,sgnexout);
     shift2 shift2(sft2in,sft2out);
     DMem DMem(dmemdata,dmemsignal,dmeminaddr, dmemoaddr, dmemout);
     A mdr(mdrin,mdrout);
     lSignExtend lSignExtend(lsgnexin, lsgnsgn,lsgnexout);
+    A LO(loin, loout);
+    A HI(hiin, hiout);
     
     assign pcsgn = PCWrite || (pccond && pcwritecond);
     assign imemin = pcout;
@@ -61,8 +64,8 @@ module cpu(input reset,[4:0]p);
     
     assign ain = gro1;
     assign bin = gro2;
-    mux4 mux21(pcout,aout,{{27{1'b0}},irout[10:6]},0,AluSrcA,alua);
-    mux5 mux51(bout,0,sgnexout,sft2out,0,AluSrcB,alub);
+    mux4 mux21(pcout,aout,{{27{1'b0}},irout[10:6]},hiout,AluSrcA,alua);
+    mux5 mux51(bout,0,sgnexout,sft2out,loout,AluSrcB,alub);
     assign alufunc = AluOp;
     assign aoin = aluo;
     assign error = aluerr;
@@ -80,5 +83,6 @@ module cpu(input reset,[4:0]p);
     mux4 mux42(irout[20:16],irout[15:11],31,0,RegDst,grinaddr);
     mux4 mux43(aoout,mdrout,lsgnexout,{irout[15:0],{16{1'b0}}},MemtoReg,grdata);
     assign grsignal = regwrite;
-    
+    mux4 mux47(alup[63:32],alur,gro1,0,hictrl,hiin);
+    mux4 mux48(alup[31:0],aluq,gro1,0,loctrl,loin);
 endmodule

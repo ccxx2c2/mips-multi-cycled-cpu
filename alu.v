@@ -1,5 +1,5 @@
 
-module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sgn,output err);
+module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sgn,output err,output [63:0]p, output [31:0]q, output[31:0]r);
     wire t;
     reg clk;
     reg[31:0] OO;
@@ -17,6 +17,8 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sg
     wire[31:0] O9;
     wire[31:0] O10;
     wire[31:0] O11;
+    wire[31:0] minusA,minusB;
+    wire tt1,tt2;
     assign t=0;
     add f0(.A(A),.B(B),.C0(t),.O(O0),.C32(OV1));
     minus f1(.A(A),.B(B),.O(O1),.C32(OV2));
@@ -30,6 +32,8 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sg
     sra f9 (A,B,O9);
     srl f10 (A,B,O10);
     sll f11 (A,B,O11);
+    minus f12 (0,A,minusA,tt1);
+    minus f13 (0,B,minusB,tt2);
         assign sgn= (Func == 6'b100001)? ~(O8 == 0) :
        (Func == 6'b000110)? O8 == 0:
        (Func == 6'b001100)? O7[0] :
@@ -52,6 +56,16 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sg
        (Func == 6'b110000)?O11:O;
         assign err = (Func == 6'b000010)?OV1:
        (Func == 6'b000100)?OV2: 0;
+       assign p = (Func == 6'b000111) ? A*B :
+                  (Func == 6'b001011) ? {1'h0,A} * {1'h0,B} : p;
+       assign q = (Func == 6'b010011) ? ((A[31]^B[31])?
+                                        -((A[31]?minusA:A)/(B[31]?minusB:B)):
+                                        (A[31]?minusA:A)/(B[31]?minusB:B) ) :
+                  (Func == 6'b100011) ? {1'h0,A} / {1'h0,B} : q;
+       assign r = (Func == 6'b010011) ? ((A[31]^B[31])?
+                                        -((A[31]?minusA:A)%(B[31]?minusB:B)):
+                                        (A[31]?minusA:A)%(B[31]?minusB:B) )  :
+                  (Func == 6'b100011) ? {1'h0,A} % {1'h0,B} : r;
 endmodule;
 
 module adder(input ai,input bi,input ci,output oi);
