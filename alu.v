@@ -14,6 +14,9 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sg
     wire[31:0] O6;
     wire[31:0] O7;
     wire[31:0] O8;
+    wire[31:0] O9;
+    wire[31:0] O10;
+    wire[31:0] O11;
     assign t=0;
     add f0(.A(A),.B(B),.C0(t),.O(O0),.C32(OV1));
     minus f1(.A(A),.B(B),.O(O1),.C32(OV2));
@@ -24,7 +27,9 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sg
     ult f6(.A(A),.B(B),.O(O6));
     lte f7(.A(A),.B(B),.O(O7));
     myxor f8(A,B,O8);
-    //unequal f9(A,B,O9);
+    sra f9 (A,B,O9);
+    srl f10 (A,B,O10);
+    sll f11 (A,B,O11);
         assign sgn= (Func == 6'b100001)? ~(O8 == 0) :
        (Func == 6'b000110)? O8 == 0:
        (Func == 6'b001100)? O7[0] :
@@ -41,7 +46,10 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sg
        (Func == 6'b001001)?O7 & ~(O8 == 0):
        (Func == 6'b010001)?O8:
        (Func == 6'b001010)?A:
-       (Func == 6'b010010)?B:O;
+       (Func == 6'b010010)?B:
+       (Func == 6'b011000)?O9:
+       (Func == 6'b101000)?O10:
+       (Func == 6'b110000)?O11:O;
         assign err = (Func == 6'b000010)?OV1:
        (Func == 6'b000100)?OV2: 0;
 endmodule;
@@ -444,4 +452,19 @@ module myxor(input [31:0]A,input [31:0] B,output [31:0] O);
  assign O[31] = A[31] ^ B[31];
 endmodule
 
+module sra(input [31:0]B,input [31:0] A,output [31:0] O);
+ wire[4:0] offset;
+ assign offset = B[4:0];
+ assign O = (A[31] == 0 ? 0 : -1) | (A >> offset);
+endmodule
+module srl(input [31:0]B,input [31:0] A,output [31:0] O);
+ wire[4:0] offset;
+ assign offset = B[4:0];
+ assign O = 0 | (A >> offset);
+endmodule
+module sll(input [31:0]B,input [31:0] A,output [31:0] O);
+ wire[4:0] offset;
+ assign offset = B[4:0];
+ assign O = (A << offset) | 0;
+endmodule
 

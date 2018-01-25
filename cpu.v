@@ -6,13 +6,13 @@ module cpu(input reset,[4:0]p);
     wire [31:0]irin,irout;
     wire [5:0]cuop,cufunc;
     wire [4:0]regimm;
-    wire[1:0] lorD, AluSrcA;
-    wire [3:0]  RegDst, MemtoReg;
-    wire [3:0] AluSrcB,PCSource,lsgn;
+    wire[1:0] lorD;
+    wire [3:0]  RegDst, MemtoReg,AluSrcA;
+    wire [3:0] PCSource,lsgn;
     wire [0:0]PCWrite,ImemWrite,cupcinc,regwrite,memWrite,pccond;
     wire [1:0]shiftSrc,mdrinctrl;
     wire [5:0]AluOp;
-    wire [4:0] graddr1,graddr2,grinaddr;
+    wire [4:0] AluSrcB,graddr1,graddr2,grinaddr;
     wire grsignal;
     wire [31:0] grdata;
     wire [31:0] gro1,gro2;
@@ -61,8 +61,8 @@ module cpu(input reset,[4:0]p);
     
     assign ain = gro1;
     assign bin = gro2;
-    mux2 mux21(pcout,aout,AluSrcA,alua);
-    mux4 mux41(bout,0,sgnexout,sft2out,AluSrcB,alub);
+    mux4 mux21(pcout,aout,{{27{1'b0}},irout[10:6]},0,AluSrcA,alua);
+    mux5 mux51(bout,0,sgnexout,sft2out,0,AluSrcB,alub);
     assign alufunc = AluOp;
     assign aoin = aluo;
     assign error = aluerr;
@@ -78,7 +78,7 @@ module cpu(input reset,[4:0]p);
     assign lsgnexin = mdrout;
     assign lsgnsgn = lsgn;
     mux4 mux42(irout[20:16],irout[15:11],31,0,RegDst,grinaddr);
-    mux4 mux43(aoout,mdrout,lsgnexout,0,MemtoReg,grdata);
+    mux4 mux43(aoout,mdrout,lsgnexout,{irout[15:0],{16{1'b0}}},MemtoReg,grdata);
     assign grsignal = regwrite;
     
 endmodule
