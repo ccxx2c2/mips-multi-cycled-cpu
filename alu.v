@@ -28,7 +28,11 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output OV
         assign OV=(Func == 6'b000010)?OV1:
        (Func == 6'b000100)?OV2:
        (Func == 6'b100001)? ~(O8 == 0) :
-       (Func == 6'b100011)? O8 == 0:0;     
+       (Func == 6'b000110)? O8 == 0:
+       (Func == 6'b001100)? O7[0] :
+       (Func == 6'b100100)? O7[0] & ~(O8 == 0):
+       (Func == 6'b100010)? ~ O7[0] :
+       (Func == 6'b010100)? ~(O7[0] & ~(O8 == 0)) : 0;     
        assign O=(Func == 6'b000010)?O0:
        (Func == 6'b000100)?O1:
        (Func == 6'b001000)?O2:
@@ -38,8 +42,8 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output OV
        (Func == 6'b000101)?O6:
        (Func == 6'b001001)?O7 & ~(O8 == 0):
        (Func == 6'b010001)?O8:
-       (Func == 6'b100101)?A:
-       (Func == 6'b101001)?B:O;
+       (Func == 6'b001010)?A:
+       (Func == 6'b010010)?B:O;
  
 endmodule;
 
