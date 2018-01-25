@@ -31,8 +31,8 @@ module pc(input[31:0] in,input signal,input increment,input reset,output[31:0] o
         pc = increment ? increpc : pc;
     end
    
-    assign onext = increpc;
-    assign out =  pc ;
+    assign onext = {increpc[30:0],2'b00};
+    assign out = {pc[30:0],2'b00} ;
     
 endmodule;
 
@@ -51,7 +51,7 @@ module gr(input[4:0] addr1,input[4:0] addr2, input[4:0] inaddr,input signal,inpu
  
  module IMem(input[31:0] in,output[31:0] out);
     reg[31:0] mem[1023:0];
-    assign out = mem[in];
+    assign out = mem[{2'b00,in[31:2]}];
  endmodule;
  
  module DMem(input[31:0] data,input signal,input[31:0] inaddr,input[31:0] oaddr,output[31:0] out);

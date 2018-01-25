@@ -24,17 +24,20 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output OV
     ult f6(.A(A),.B(B),.O(O6));
     lt f7(.A(A),.B(B),.O(O7));
     myxor f8(A,B,O8);
-        assign OV=(Func[1]&~Func[0])?OV1:
-       (Func[2]&~Func[0])?OV2:0;     
-       assign O=(Func[1]&~Func[0])?O0:
-       (Func[2]&~Func[0])?O1:
-       (Func[3]&~Func[0])?O2:
-       (Func[4]&~Func[0])?O3:
-       (Func[5]&~Func[0])?O4:
-       (Func[1]&Func[0])?O5:
-       (Func[2]&Func[0])?O6:
-       (Func[3]&Func[0])?O7:
-       (Func[4]&Func[0])?O8:O;
+    //unequal f9(A,B,O9);
+        assign OV=(Func == 6'b000010)?OV1:
+       (Func == 6'b000100)?OV2:
+       (Func == 6'b100001)? O8[0] :
+       (Func == 6'b100011)? ~O8[0]:0;     
+       assign O=(Func == 6'b000010)?O0:
+       (Func == 6'b000100)?O1:
+       (Func == 6'b001000)?O2:
+       (Func == 6'b010000)?O3:
+       (Func == 6'b100000)?O4:
+       (Func == 6'b000011)?O5:
+       (Func == 6'b000101)?O6:
+       (Func == 6'b001001)?O7:
+       (Func == 6'b010001)?O8:O;
  
 endmodule;
 
@@ -402,6 +405,11 @@ module lt(input[31:0] A,input[31:0] B,output[31:0] O);
   assign O = {tt,T[31]^C32};
 endmodule 
 
+module equal(A,B,O);
+    input [31:0] A,B;
+    output O;
+    assign O = A == B;
+endmodule
 module myxor(input [31:0]A,input [31:0] B,output [31:0] O);
  assign O[0] = A[0] ^ B[0];
  assign O[1] = A[1] ^ B[1];
