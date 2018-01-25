@@ -1,5 +1,5 @@
 
-module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output OV);
+module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output sgn,output err);
     wire t;
     reg clk;
     reg[31:0] OO;
@@ -25,9 +25,7 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output OV
     lte f7(.A(A),.B(B),.O(O7));
     myxor f8(A,B,O8);
     //unequal f9(A,B,O9);
-        assign OV=(Func == 6'b000010)?OV1:
-       (Func == 6'b000100)?OV2:
-       (Func == 6'b100001)? ~(O8 == 0) :
+        assign sgn= (Func == 6'b100001)? ~(O8 == 0) :
        (Func == 6'b000110)? O8 == 0:
        (Func == 6'b001100)? O7[0] :
        (Func == 6'b100100)? O7[0] & ~(O8 == 0):
@@ -44,7 +42,8 @@ module alu(input[31:0] A,input[31:0] B,input[5:0] Func,output [31:0] O,output OV
        (Func == 6'b010001)?O8:
        (Func == 6'b001010)?A:
        (Func == 6'b010010)?B:O;
- 
+        assign err = (Func == 6'b000010)?OV1:
+       (Func == 6'b000100)?OV2: 0;
 endmodule;
 
 module adder(input ai,input bi,input ci,output oi);
@@ -101,9 +100,9 @@ module CLA_4(input[3:0] G,input[3:0] P,input C0,output C1,output C2,output C3,ou
   assign C4=C[3];
 endmodule;
 
-module add(input[31:0] A,input[31:0] B,input C0,output[31:0] O,output [31:0] C,output C32);
+module add(input[31:0] A,input[31:0] B,input C0,output[31:0] O,output C32);
   
-  //wire [31:0] C;
+  wire [31:0] C;
   wire [31:0] T;
   wire [3:0] Gs;
   wire [3:0] Ps;

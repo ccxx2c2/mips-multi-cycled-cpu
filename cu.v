@@ -1,7 +1,9 @@
-module CU(input[5:0] op,[5:0] irfunc,[4:0]regimm,[4:0] p,[0:0]reset, output[1:0] lorD,[3:0] RegDst,[3:0] MemtoReg,[1:0] AluSrcA,[3:0] AluSrcB,[3:0] PCSource,PCWrite,ImemWrite,pcinc,[5:0]AluOp,regwrite,memWrite,[1:0] shiftSrc,pccond,[1:0]mdrinctrl);
+module CU(input[5:0] op,[5:0] irfunc,[4:0]regimm,[4:0] p,[0:0]reset,[0:0]error, output[1:0] lorD,[3:0] RegDst,[3:0] MemtoReg,[1:0] AluSrcA,[3:0] AluSrcB,[3:0] PCSource,PCWrite,ImemWrite,pcinc,[5:0]AluOp,regwrite,memWrite,[1:0] shiftSrc,pccond,[1:0]mdrinctrl);
 //p:p0~p4的阶段值，为p0时p[0]=1,类推
 wire add,lw,sw,j,jal,beq,bne,slt,jr,jalr;
 wire myand,myor,myxor,mynor,addiu,andi,ori,xori;
+wire bgez, bgtz, blez, bltz, sub, subu, slti, sltu, sltiu;
+wire excp;
 assign add = (op == 6'b000000) && (irfunc == 6'b100000);
 assign lw = (op == 6'b100011) ;
 assign sw = (op == 6'b101011) ;
@@ -24,8 +26,14 @@ assign addiu = (op == 6'b001001);
 assign andi = (op == 6'b001100);
 assign ori = (op == 6'b001101);
 assign xori = (op == 6'b001110);
-assign simpleCalcR = (add || slt || myand || myor || myxor || mynor);
-assign simpleCalcI = (addiu || andi || ori || xori);
+assign sub  = (op == 6'b000000) && (irfunc == 6'b100010);
+assign subu  = (op == 6'b000000) && (irfunc == 6'b100011);
+assign slti = (op == 6'b001010);
+assign sltiu = (op == 6'b001011);
+assign sltu = (op == 6'b000000) && (irfunc == 6'b101011);
+
+assign simpleCalcR = (add || slt || myand || myor || myxor || mynor || sub || subu || sltu);
+assign simpleCalcI = (addiu || andi || ori || xori || slti || sltiu);
 assign branches = (beq || bne || bgez || bgtz || blez || bltz);
 
 assign ImemWrite = p[0] ? 1'b1 : 1'b0;
@@ -46,13 +54,15 @@ assign AluSrcB = (p[2] && (simpleCalcR || beq || bne)) ? 4'b0001 :
                  (p[2] && simpleCalcI) ? 4'b0100 :
                  (p[2] && (lw || sw) || p[1] && branches) ? 4'b1000 : 4'b0000 ;
 assign AluOp = p[2] && (add || addiu) || p[1] && branches || p[3] && (lw || sw) ? 6'b000010 :
+               p[2] && (sub || subu) ? 6'b000100 :
                p[2] && beq ? 6'b000110 :
                p[2] && bne ? 6'b100001 :
                p[2] && bgez ? 6'b010100 :
                p[2] && bgtz ? 6'b100010 :
                p[2] && blez ? 6'b001100 :
                p[2] && bltz ? 6'b100100 :
-               p[2] && slt ? 6'b001001 : 
+               p[2] && (slt || slti) ? 6'b001001 : 
+               p[2] && (sltu || sltiu) ? 6'b000101 : 
                p[2] && (myand || andi) ? 6'b001000 : 
                p[2] && (myor || ori) ? 6'b010000 : 
                p[2] && (myxor || xori) ? 6'b010001 : 
@@ -60,11 +70,13 @@ assign AluOp = p[2] && (add || addiu) || p[1] && branches || p[3] && (lw || sw) 
                p[2] && (jr || jalr) ? 6'b001010 : 6'b000000;
 assign PCSource = p[2] && (j || jal) ? 4'b0100 : 
                   p[2] && (branches || jr || jalr) ? 4'b0010 : 4'b000 ;
-assign regwrite = p[4] ? 1 : 0;
+assign regwrite = (p[4] && ~excp) ? 1 : 0;
 assign memWrite = p[3] && sw ? 1 : 0;
 assign shiftSrc = p[2] && (lw || sw) || p[1] && branches ? 2'b01 :
                   p[2] && (j || jal) ? 2'b10 : 2'b00;
 assign mdrinctrl = (p[2]) && (jal || jalr) ? 2'b10 :
                     (p[3] || p[4]) && (jal || jalr) ? 2'b00 : 2'b01;
+                    
+assign excp = (add || sub) && error;
 endmodule;
 
