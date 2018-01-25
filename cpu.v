@@ -9,7 +9,7 @@ module cpu(input reset,[4:0]p);
     wire [3:0]  RegDst, MemtoReg;
     wire [3:0] AluSrcB,PCSource;
     wire PCWrite,ImemWrite,cupcinc,regwrite,memWrite,pccond;
-    wire [1:0]shiftSrc;
+    wire [1:0]shiftSrc,mdrinctrl;
     wire [5:0]AluOp;
     wire [4:0] graddr1,graddr2,grinaddr;
     wire grsignal;
@@ -30,7 +30,7 @@ module cpu(input reset,[4:0]p);
     IMem IMem(imemin,imemout);
     pc pc(pcin,pcsgn,pcinc,reset,pcnext,pcout);
     IR IR(irin,irsgn,irout);
-    CU CU(cuop,cufunc,p,reset,lorD,RegDst,MemtoReg,AluSrcA,AluSrcB,PCSource,PCWrite,ImemWrite,cupcinc,AluOp,regwrite,memWrite,shiftSrc,pccond);
+    CU CU(cuop,cufunc,p,reset,lorD,RegDst,MemtoReg,AluSrcA,AluSrcB,PCSource,PCWrite,ImemWrite,cupcinc,AluOp,regwrite,memWrite,shiftSrc,pccond,mdrinctrl);
     gr gr(graddr1,graddr2, grinaddr,grsignal,grdata,gro1,gro2);
     A A(ain,aout);
     A B(bin,bout);
@@ -66,11 +66,11 @@ module cpu(input reset,[4:0]p);
     assign dmemsignal = memWrite;
     assign dmeminaddr = aoout;
     assign dmemdata = bout;
-    assign mdrin = dmemout;
+    mux2 mux22(dmemout,pcnext,mdrinctrl,mdrin);
     
     
     mux4 mux42(irout[20:16],irout[15:11],31,0,RegDst,grinaddr);
-    mux4 mux43(aoout,mdrout,pcnext,0,MemtoReg,grdata);
+    mux4 mux43(aoout,mdrout,0,0,MemtoReg,grdata);
     assign grsignal = regwrite;
     
 endmodule
