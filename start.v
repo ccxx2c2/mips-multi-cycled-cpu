@@ -15,8 +15,8 @@ module start;
     clr = 0;
     // --> end                                               
         $readmemh( "code.txt" , cpu.IMem.mem ) ;            
-        $readmemh( "reg.txt" , cpu.gr.x ) ;    
-      //  $readmemh( "data.txt" , cpu.DMem.mem ) ;  
+      //  $readmemh( "reg.txt" , cpu.gr.x ) ;    
+        $readmemh( "data.txt" , cpu.DMem.mem ) ;  
         $monitor("PC = 0x%8X, IR = 0x%8X", cpu.pc.in, cpu.IR.out );  
       
     //code  

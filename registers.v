@@ -8,41 +8,26 @@ module IR(input[31:0] in,input signal,output[31:0] out);
     assign out = IR;
     
 endmodule;
-module A(input[31:0] in,input signal,output[31:0] out);
+module A(input[31:0] in,output[31:0] out);
     reg[31:0] A;
-    always @(in,signal)
+    always @(in)
     begin
-        if(signal == 1)
-            A = in;
+        A = in;
     end
     assign out = A;
     
 endmodule;
-module B(input[31:0] in,input signal,output[31:0] out);
-    reg[31:0] B;
-    always @(in,signal)
-    begin
-        if(signal == 1)
-            B = in;
-    end
-    assign out = B;
-endmodule;
-module aluout(input[31:0] in,input signal,output[31:0] out);
-    reg[31:0] aluout;
-    always @(in,signal)
-    begin
-        if(signal == 1)
-            aluout = in;
-    end
-    assign out = aluout;
-endmodule;
-module pc(input[31:0] in,input signal,input increment,output[31:0] onext,output[31:0] out);
+module pc(input[31:0] in,input signal,input increment,input reset,output[31:0] onext,output[31:0] out);
     reg[31:0] pc; //mem address of lmem
     wire[31:0] increpc;
     assign increpc = pc + 1;
-    always @(in,increment)
+    always @(reset)
     begin
-        pc = signal ? in : pc;
+        pc = 0;
+    end
+    always @(in,increment,signal)
+    begin
+        pc = signal ? {{12{1'b0}},2'b00,in[20:2]} : pc;
         pc = increment ? increpc : pc;
     end
    
@@ -55,6 +40,7 @@ module gr(input[4:0] addr1,input[4:0] addr2, input[4:0] inaddr,input signal,inpu
     reg[31:0] x[31:0];
     always @(data,inaddr,signal)
     begin
+        x[0] = 0;
         if(signal == 1)
             x[inaddr] = data;
     end
@@ -70,11 +56,22 @@ module gr(input[4:0] addr1,input[4:0] addr2, input[4:0] inaddr,input signal,inpu
  
  module DMem(input[31:0] data,input signal,input[31:0] inaddr,input[31:0] oaddr,output[31:0] out);
     reg[31:0] mem[1023:0];
-    always @(data,inaddr)
+    always @(data,inaddr,signal)
     begin
+        
         if(signal == 1)
-            mem[inaddr] = data;
+            mem[{2'b00,inaddr[31:2]}] = data;
     end
-    assign out = mem[oaddr];
+    assign out = mem[{2'b00,oaddr[31:2]}];
+ endmodule;
+ module SignExtend(in,out);
+    input [15:0] in;
+    output [31:0] out;
+    assign out = {{16{in[15]}},in};
  endmodule;
  
+ module shift2(in,out);
+    input [31:0]in;
+    output [31:0]out;
+    assign out = {in[29:0],2'b00};
+ endmodule;
